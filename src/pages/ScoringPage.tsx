@@ -4,16 +4,10 @@ import { Score } from '../types';
 import { Save, X } from 'lucide-react';
 
 const ScoringPage: React.FC = () => {
-  const { groups, students, scores, fetchGroups, fetchStudents, fetchScores, addScore, updateScore, loading } = useStore();
+  const { groups, students, scores, addScore, updateScore } = useStore();
   const [selectedGroup, setSelectedGroup] = useState('');
   const [selectedStudent, setSelectedStudent] = useState('');
   const [score, setScore] = useState(0);
-
-  useEffect(() => {
-    fetchGroups();
-    fetchStudents();
-    fetchScores();
-  }, []);
 
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const groupId = e.target.value;
@@ -38,16 +32,16 @@ const ScoringPage: React.FC = () => {
     setScore(parseInt(e.target.value) || 0);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedGroup || !selectedStudent) return;
 
     // 检查是否已存在分数
     const existingScore = scores.find(s => s.student_id === selectedStudent);
     if (existingScore) {
-      await updateScore({ ...existingScore, score });
+      updateScore({ ...existingScore, score });
     } else {
-      await addScore({ student_id: selectedStudent, group_id: selectedGroup, score });
+      addScore({ student_id: selectedStudent, group_id: selectedGroup, score });
     }
     // 重置表单
     setSelectedStudent('');
@@ -136,10 +130,10 @@ const ScoringPage: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading || !selectedGroup || !selectedStudent}
+              disabled={!selectedGroup || !selectedStudent}
               className="px-4 sm:px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto sm:justify-center"
             >
-              {loading ? '保存中...' : '保存分数'}
+              保存分数
             </button>
           </div>
         </form>

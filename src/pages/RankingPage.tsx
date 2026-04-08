@@ -3,14 +3,8 @@ import { useStore } from '../store';
 import { Download } from 'lucide-react';
 
 const RankingPage: React.FC = () => {
-  const { groups, students, scores, rankings, fetchGroups, fetchStudents, fetchScores, calculateRankings } = useStore();
+  const { groups, students, scores, rankings, calculateRankings } = useStore();
   const [selectedGroup, setSelectedGroup] = useState('');
-
-  useEffect(() => {
-    fetchGroups();
-    fetchStudents();
-    fetchScores();
-  }, []);
 
   useEffect(() => {
     calculateRankings();

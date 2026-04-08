@@ -4,16 +4,11 @@ import { Student } from '../types';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 
 const StudentsPage: React.FC = () => {
-  const { groups, students, fetchGroups, fetchStudents, createStudent, updateStudent, deleteStudent, loading } = useStore();
+  const { groups, students, createStudent, updateStudent, deleteStudent } = useStore();
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({ name: '', gender: '', age: 0, group_id: '' });
   const [selectedGroup, setSelectedGroup] = useState('');
-
-  useEffect(() => {
-    fetchGroups();
-    fetchStudents();
-  }, []);
 
   const handleOpenModal = (student?: Student) => {
     if (student) {
@@ -39,19 +34,19 @@ const StudentsPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingStudent) {
-      await updateStudent({ ...editingStudent, ...formData });
+      updateStudent({ ...editingStudent, ...formData });
     } else {
-      await createStudent(formData);
+      createStudent(formData);
     }
     handleCloseModal();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (confirm('确定要删除这个学生吗？')) {
-      await deleteStudent(id);
+      deleteStudent(id);
     }
   };
 
@@ -249,10 +244,9 @@ const StudentsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
                   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  {loading ? '保存中...' : '保存'}
+                  保存
                 </button>
               </div>
             </form>

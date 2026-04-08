@@ -4,14 +4,10 @@ import { Group } from '../types';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 
 const GroupsPage: React.FC = () => {
-  const { groups, fetchGroups, createGroup, updateGroup, deleteGroup, loading } = useStore();
+  const { groups, createGroup, updateGroup, deleteGroup } = useStore();
   const [showModal, setShowModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '' });
-
-  useEffect(() => {
-    fetchGroups();
-  }, []);
 
   const handleOpenModal = (group?: Group) => {
     if (group) {
@@ -34,19 +30,19 @@ const GroupsPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingGroup) {
-      await updateGroup({ ...editingGroup, ...formData });
+      updateGroup({ ...editingGroup, ...formData });
     } else {
-      await createGroup(formData);
+      createGroup(formData);
     }
     handleCloseModal();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (confirm('确定要删除这个组别吗？')) {
-      await deleteGroup(id);
+      deleteGroup(id);
     }
   };
 
@@ -172,10 +168,9 @@ const GroupsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
                   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  {loading ? '保存中...' : '保存'}
+                  保存
                 </button>
               </div>
             </form>
