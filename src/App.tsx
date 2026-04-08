@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import GroupsPage from './pages/GroupsPage';
 import StudentsPage from './pages/StudentsPage';
 import ScoringPage from './pages/ScoringPage';
 import RankingPage from './pages/RankingPage';
+import { useStore } from './store';
 
 const App: React.FC = () => {
+  const { initialize, isLoading } = useStore();
+
+  useEffect(() => {
+    // 应用启动时初始化数据
+    initialize();
+  }, [initialize]);
+
   return (
     <Router basename="/scoring-system">
       <Layout>
