@@ -122,17 +122,29 @@ export const useStore = create<Store>((set, get) => {
     deleteGroup: (id) => {
       set((state) => {
         const newGroups = state.groups.filter((g) => g.id !== id);
+        const deletedStudentIds = state.students.filter((s) => s.group_id === id).map((s) => s.id);
+        const newStudents = state.students.filter((s) => s.group_id !== id);
+        const newScores = state.scores.filter((score) => score.group_id !== id);
         saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        return { groups: newGroups };
+        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
+        saveToStorage(STORAGE_KEYS.SCORES, newScores);
+        return { groups: newGroups, students: newStudents, scores: newScores };
       });
+      get().calculateRankings();
     },
 
     deleteGroups: (ids) => {
       set((state) => {
         const newGroups = state.groups.filter((g) => !ids.includes(g.id));
+        const deletedStudentIds = state.students.filter((s) => ids.includes(s.group_id)).map((s) => s.id);
+        const newStudents = state.students.filter((s) => !ids.includes(s.group_id));
+        const newScores = state.scores.filter((score) => !ids.includes(score.group_id));
         saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        return { groups: newGroups };
+        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
+        saveToStorage(STORAGE_KEYS.SCORES, newScores);
+        return { groups: newGroups, students: newStudents, scores: newScores };
       });
+      get().calculateRankings();
     },
 
     fetchStudents: () => {
@@ -167,17 +179,23 @@ export const useStore = create<Store>((set, get) => {
     deleteStudent: (id) => {
       set((state) => {
         const newStudents = state.students.filter((s) => s.id !== id);
+        const newScores = state.scores.filter((score) => score.student_id !== id);
         saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        return { students: newStudents };
+        saveToStorage(STORAGE_KEYS.SCORES, newScores);
+        return { students: newStudents, scores: newScores };
       });
+      get().calculateRankings();
     },
 
     deleteStudents: (ids) => {
       set((state) => {
         const newStudents = state.students.filter((s) => !ids.includes(s.id));
+        const newScores = state.scores.filter((score) => !ids.includes(score.student_id));
         saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        return { students: newStudents };
+        saveToStorage(STORAGE_KEYS.SCORES, newScores);
+        return { students: newStudents, scores: newScores };
       });
+      get().calculateRankings();
     },
 
     fetchScores: () => {
