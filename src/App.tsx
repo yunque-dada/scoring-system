@@ -9,7 +9,7 @@ import RankingPage from './pages/RankingPage';
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/scoring-system">
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
