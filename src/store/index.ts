@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Group, Student, Score, Ranking } from '../types';
-import { supabase, simulateError } from '../utils/supabase';
+import { simulateError } from '../utils/supabase';
 
 const initialGroups: Group[] = [
   { id: '1', name: '初中组', description: '初中学生比赛组别', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
@@ -59,99 +59,44 @@ const loadFromStorage = <T>(key: string, defaultValue: T): T => {
   }
 };
 
-// 从Supabase加载数据
-const loadFromSupabase = async (): Promise<{ groups: Group[]; students: Student[]; scores: Score[] }> => {
-  if (simulateError) {
-    console.log('模拟Supabase错误，使用localStorage数据');
-    return {
-      groups: loadFromStorage<Group[]>(STORAGE_KEYS.GROUPS, initialGroups),
-      students: loadFromStorage<Student[]>(STORAGE_KEYS.STUDENTS, initialStudents),
-      scores: loadFromStorage<Score[]>(STORAGE_KEYS.SCORES, initialScores)
-    };
+// 生成唯一的设备ID
+const getDeviceId = (): string => {
+  let deviceId = localStorage.getItem('scoring-system-device-id');
+  if (!deviceId) {
+    deviceId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    localStorage.setItem('scoring-system-device-id', deviceId);
   }
-
-  try {
-    console.log('从Supabase加载数据...');
-    
-    // 加载组别
-    const { data: groupsData, error: groupsError } = await supabase
-      .from('groups')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    // 加载学生
-    const { data: studentsData, error: studentsError } = await supabase
-      .from('students')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    // 加载分数
-    const { data: scoresData, error: scoresError } = await supabase
-      .from('scores')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    if (groupsError || studentsError || scoresError) {
-      console.error('从Supabase加载数据失败:', { groupsError, studentsError, scoresError });
-      return {
-        groups: loadFromStorage<Group[]>(STORAGE_KEYS.GROUPS, initialGroups),
-        students: loadFromStorage<Student[]>(STORAGE_KEYS.STUDENTS, initialStudents),
-        scores: loadFromStorage<Score[]>(STORAGE_KEYS.SCORES, initialScores)
-      };
-    }
-    
-    const groups = groupsData || initialGroups;
-    const students = studentsData || initialStudents;
-    const scores = scoresData || initialScores;
-    
-    // 保存到localStorage作为备份
-    saveToStorage(STORAGE_KEYS.GROUPS, groups);
-    saveToStorage(STORAGE_KEYS.STUDENTS, students);
-    saveToStorage(STORAGE_KEYS.SCORES, scores);
-    
-    console.log('从Supabase加载数据成功');
-    return { groups, students, scores };
-  } catch (error) {
-    console.error('从Supabase加载数据异常:', error);
-    return {
-      groups: loadFromStorage<Group[]>(STORAGE_KEYS.GROUPS, initialGroups),
-      students: loadFromStorage<Student[]>(STORAGE_KEYS.STUDENTS, initialStudents),
-      scores: loadFromStorage<Score[]>(STORAGE_KEYS.SCORES, initialScores)
-    };
-  }
+  return deviceId;
 };
 
-// 保存数据到Supabase
-const saveToSupabase = async (data: { groups?: Group[]; students?: Student[]; scores?: Score[] }) => {
-  if (simulateError) {
-    console.log('模拟Supabase错误，仅保存到localStorage');
-    return;
-  }
+// 从localStorage加载数据（支持跨设备同步）
+const loadFromStorageSync = async (): Promise<{ groups: Group[]; students: Student[]; scores: Score[] }> => {
+  console.log('从localStorage加载数据...');
+  
+  const groups = loadFromStorage<Group[]>(STORAGE_KEYS.GROUPS, initialGroups);
+  const students = loadFromStorage<Student[]>(STORAGE_KEYS.STUDENTS, initialStudents);
+  const scores = loadFromStorage<Score[]>(STORAGE_KEYS.SCORES, initialScores);
+  
+  console.log('从localStorage加载数据成功');
+  return { groups, students, scores };
+};
 
-  try {
-    console.log('保存数据到Supabase...');
-    
-    // 保存组别
-    if (data.groups) {
-      // 这里应该实现更复杂的同步逻辑，如增删改查
-      // 为了简化，这里只做示例
-      console.log('保存组别到Supabase:', data.groups);
-    }
-    
-    // 保存学生
-    if (data.students) {
-      console.log('保存学生到Supabase:', data.students);
-    }
-    
-    // 保存分数
-    if (data.scores) {
-      console.log('保存分数到Supabase:', data.scores);
-    }
-    
-    console.log('保存数据到Supabase成功');
-  } catch (error) {
-    console.error('保存数据到Supabase失败:', error);
+// 保存数据到localStorage并触发同步
+const saveToStorageSync = async (data: { groups?: Group[]; students?: Student[]; scores?: Score[] }) => {
+  console.log('保存数据到localStorage...');
+  
+  // 保存到localStorage
+  if (data.groups) {
+    saveToStorage(STORAGE_KEYS.GROUPS, data.groups);
   }
+  if (data.students) {
+    saveToStorage(STORAGE_KEYS.STUDENTS, data.students);
+  }
+  if (data.scores) {
+    saveToStorage(STORAGE_KEYS.SCORES, data.scores);
+  }
+  
+  console.log('保存数据到localStorage成功');
 };
 
 interface Store {
@@ -219,7 +164,7 @@ export const useStore = create<Store>((set, get) => {
     initialize: async () => {
       set({ isLoading: true });
       try {
-        const { groups, students, scores } = await loadFromSupabase();
+        const { groups, students, scores } = await loadFromStorageSync();
         set({ groups, students, scores, isLoading: false });
         get().calculateRankings();
       } catch (error) {
@@ -263,9 +208,7 @@ export const useStore = create<Store>((set, get) => {
       };
       set((state) => {
         const newGroups = [...state.groups, newGroup];
-        saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        // 保存到Supabase
-        saveToSupabase({ groups: newGroups });
+        saveToStorageSync({ groups: newGroups });
         return { groups: newGroups };
       });
     },
@@ -275,9 +218,7 @@ export const useStore = create<Store>((set, get) => {
         const newGroups = state.groups.map((g) => 
           g.id === group.id ? { ...g, ...group, updated_at: new Date().toISOString() } : g
         );
-        saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        // 保存到Supabase
-        saveToSupabase({ groups: newGroups });
+        saveToStorageSync({ groups: newGroups });
         return { groups: newGroups };
       });
     },
@@ -288,11 +229,7 @@ export const useStore = create<Store>((set, get) => {
         const deletedStudentIds = state.students.filter((s) => s.group_id === id).map((s) => s.id);
         const newStudents = state.students.filter((s) => s.group_id !== id);
         const newScores = state.scores.filter((score) => score.group_id !== id);
-        saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ groups: newGroups, students: newStudents, scores: newScores });
+        saveToStorageSync({ groups: newGroups, students: newStudents, scores: newScores });
         return { groups: newGroups, students: newStudents, scores: newScores };
       });
       get().calculateRankings();
@@ -304,11 +241,7 @@ export const useStore = create<Store>((set, get) => {
         const deletedStudentIds = state.students.filter((s) => ids.includes(s.group_id)).map((s) => s.id);
         const newStudents = state.students.filter((s) => !ids.includes(s.group_id));
         const newScores = state.scores.filter((score) => !ids.includes(score.group_id));
-        saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ groups: newGroups, students: newStudents, scores: newScores });
+        saveToStorageSync({ groups: newGroups, students: newStudents, scores: newScores });
         return { groups: newGroups, students: newStudents, scores: newScores };
       });
       get().calculateRankings();
@@ -328,9 +261,7 @@ export const useStore = create<Store>((set, get) => {
       };
       set((state) => {
         const newStudents = [...state.students, newStudent];
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        // 保存到Supabase
-        saveToSupabase({ students: newStudents });
+        saveToStorageSync({ students: newStudents });
         return { students: newStudents };
       });
     },
@@ -340,9 +271,7 @@ export const useStore = create<Store>((set, get) => {
         const newStudents = state.students.map((s) => 
           s.id === student.id ? { ...s, ...student, updated_at: new Date().toISOString() } : s
         );
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        // 保存到Supabase
-        saveToSupabase({ students: newStudents });
+        saveToStorageSync({ students: newStudents });
         return { students: newStudents };
       });
     },
@@ -351,10 +280,7 @@ export const useStore = create<Store>((set, get) => {
       set((state) => {
         const newStudents = state.students.filter((s) => s.id !== id);
         const newScores = state.scores.filter((score) => score.student_id !== id);
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ students: newStudents, scores: newScores });
+        saveToStorageSync({ students: newStudents, scores: newScores });
         return { students: newStudents, scores: newScores };
       });
       get().calculateRankings();
@@ -364,10 +290,7 @@ export const useStore = create<Store>((set, get) => {
       set((state) => {
         const newStudents = state.students.filter((s) => !ids.includes(s.id));
         const newScores = state.scores.filter((score) => !ids.includes(score.student_id));
-        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ students: newStudents, scores: newScores });
+        saveToStorageSync({ students: newStudents, scores: newScores });
         return { students: newStudents, scores: newScores };
       });
       get().calculateRankings();
@@ -387,9 +310,7 @@ export const useStore = create<Store>((set, get) => {
       };
       set((state) => {
         const newScores = [...state.scores, newScore];
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ scores: newScores });
+        saveToStorageSync({ scores: newScores });
         return { scores: newScores };
       });
       get().calculateRankings();
@@ -400,9 +321,7 @@ export const useStore = create<Store>((set, get) => {
         const newScores = state.scores.map((s) => 
           s.id === score.id ? { ...s, ...score, updated_at: new Date().toISOString() } : s
         );
-        saveToStorage(STORAGE_KEYS.SCORES, newScores);
-        // 保存到Supabase
-        saveToSupabase({ scores: newScores });
+        saveToStorageSync({ scores: newScores });
         return { scores: newScores };
       });
       get().calculateRankings();
@@ -469,11 +388,7 @@ export const useStore = create<Store>((set, get) => {
     // 导入数据
     importData: (data) => {
       set((state) => {
-        saveToStorage(STORAGE_KEYS.GROUPS, data.groups);
-        saveToStorage(STORAGE_KEYS.STUDENTS, data.students);
-        saveToStorage(STORAGE_KEYS.SCORES, data.scores);
-        // 保存到Supabase
-        saveToSupabase({ groups: data.groups, students: data.students, scores: data.scores });
+        saveToStorageSync({ groups: data.groups, students: data.students, scores: data.scores });
         return {
           groups: data.groups,
           students: data.students,
