@@ -5,17 +5,7 @@ import { Trophy, Users, Layers, TrendingUp, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
-  const { groups, students, scores, fetchGroups, fetchStudents, fetchScores, calculateRankings } = useStore();
-
-  useEffect(() => {
-    fetchGroups();
-    fetchStudents();
-    fetchScores();
-  }, []);
-
-  useEffect(() => {
-    calculateRankings();
-  }, [scores, students, groups]);
+  const { groups, students, scores } = useStore();
 
   // 统计数据
   const stats = {

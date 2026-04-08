@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../store';
 import { Score } from '../types';
 import { Save, X } from 'lucide-react';
@@ -55,14 +55,18 @@ const ScoringPage: React.FC = () => {
   };
 
   // 按组别筛选学生
-  const filteredStudents = selectedGroup
-    ? students.filter(student => student.group_id === selectedGroup)
-    : [];
+  const filteredStudents = useMemo(() => {
+    return selectedGroup
+      ? students.filter(student => student.group_id === selectedGroup)
+      : [];
+  }, [selectedGroup, students]);
 
   // 按时间倒序排列分数历史
-  const sortedScores = [...scores].sort((a, b) => 
-    new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-  );
+  const sortedScores = useMemo(() => {
+    return [...scores].sort((a, b) => 
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
+  }, [scores]);
 
   return (
     <div className="space-y-6">

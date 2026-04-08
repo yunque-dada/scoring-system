@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../store';
 import { Download } from 'lucide-react';
 
 const RankingPage: React.FC = () => {
-  const { groups, rankings, fetchGroups, fetchStudents, fetchScores, calculateRankings } = useStore();
+  const { groups, students, scores, rankings, fetchGroups, fetchStudents, fetchScores, calculateRankings } = useStore();
   const [selectedGroup, setSelectedGroup] = useState('');
 
   useEffect(() => {
@@ -14,21 +14,25 @@ const RankingPage: React.FC = () => {
 
   useEffect(() => {
     calculateRankings();
-  }, []);
+  }, [scores, students, groups]);
 
   // 按组别筛选排名
-  const filteredRankings = selectedGroup
-    ? rankings.filter(ranking => ranking.group_id === selectedGroup)
-    : rankings;
+  const filteredRankings = useMemo(() => {
+    return selectedGroup
+      ? rankings.filter(ranking => ranking.group_id === selectedGroup)
+      : rankings;
+  }, [selectedGroup, rankings]);
 
   // 按组别分组
-  const rankingsByGroup = filteredRankings.reduce((acc, ranking) => {
-    if (!acc[ranking.group_id]) {
-      acc[ranking.group_id] = [];
-    }
-    acc[ranking.group_id].push(ranking);
-    return acc;
-  }, {} as Record<string, typeof filteredRankings>);
+  const rankingsByGroup = useMemo(() => {
+    return filteredRankings.reduce((acc, ranking) => {
+      if (!acc[ranking.group_id]) {
+        acc[ranking.group_id] = [];
+      }
+      acc[ranking.group_id].push(ranking);
+      return acc;
+    }, {} as Record<string, typeof filteredRankings>);
+  }, [filteredRankings]);
 
   // 导出排行榜数据
   const handleExport = () => {
@@ -84,7 +88,7 @@ const RankingPage: React.FC = () => {
                 <h3 className="text-lg font-semibold">{group.name} - 排行榜</h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-y-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -98,8 +102,8 @@ const RankingPage: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {groupRankings.map((ranking, index) => (
+                  <tbody className="bg-white divide-y divide-y-gray-200">
+                    {(groupRankings as typeof rankings).map((ranking, index) => (
                       <tr key={ranking.student_id} className={index < 3 ? 'bg-yellow-50' : ''}>
                         <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                           {ranking.rank}
