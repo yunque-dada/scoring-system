@@ -67,10 +67,12 @@ interface Store {
   createGroup: (group: Omit<Group, 'id' | 'created_at' | 'updated_at'>) => void;
   updateGroup: (group: Group) => void;
   deleteGroup: (id: string) => void;
+  deleteGroups: (ids: string[]) => void;
   fetchStudents: () => void;
   createStudent: (student: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => void;
   updateStudent: (student: Student) => void;
   deleteStudent: (id: string) => void;
+  deleteStudents: (ids: string[]) => void;
   fetchScores: () => void;
   addScore: (score: Omit<Score, 'id' | 'created_at' | 'updated_at'>) => void;
   updateScore: (score: Score) => void;
@@ -125,6 +127,14 @@ export const useStore = create<Store>((set, get) => {
       });
     },
 
+    deleteGroups: (ids) => {
+      set((state) => {
+        const newGroups = state.groups.filter((g) => !ids.includes(g.id));
+        saveToStorage(STORAGE_KEYS.GROUPS, newGroups);
+        return { groups: newGroups };
+      });
+    },
+
     fetchStudents: () => {
       const students = loadFromStorage<Student[]>(STORAGE_KEYS.STUDENTS, initialStudents);
       set({ students });
@@ -157,6 +167,14 @@ export const useStore = create<Store>((set, get) => {
     deleteStudent: (id) => {
       set((state) => {
         const newStudents = state.students.filter((s) => s.id !== id);
+        saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
+        return { students: newStudents };
+      });
+    },
+
+    deleteStudents: (ids) => {
+      set((state) => {
+        const newStudents = state.students.filter((s) => !ids.includes(s.id));
         saveToStorage(STORAGE_KEYS.STUDENTS, newStudents);
         return { students: newStudents };
       });

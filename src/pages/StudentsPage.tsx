@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store';
 import { Student } from '../types';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Edit, Trash2, X, CheckSquare, Square } from 'lucide-react';
 
 const StudentsPage: React.FC = () => {
-  const { groups, students, createStudent, updateStudent, deleteStudent } = useStore();
+  const { groups, students, createStudent, updateStudent, deleteStudent, deleteStudents } = useStore();
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({ name: '', gender: '', age: 0, group_id: '' });
   const [selectedGroup, setSelectedGroup] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleOpenModal = (student?: Student) => {
     if (student) {
@@ -50,6 +51,31 @@ const StudentsPage: React.FC = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    const filteredIds = filteredStudents.map(s => s.id);
+    if (selectedIds.length === filteredIds.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredIds);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.length === 0) return;
+    if (confirm(`确定要删除选中的 ${selectedIds.length} 个学生吗？`)) {
+      deleteStudents(selectedIds);
+      setSelectedIds([]);
+    }
+  };
+
   const filteredStudents = selectedGroup 
     ? students.filter(student => student.group_id === selectedGroup)
     : students;
@@ -59,13 +85,24 @@ const StudentsPage: React.FC = () => {
       {/* 页面标题和操作按钮 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-900">学生管理</h2>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center w-full sm:w-auto justify-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          <span>添加学生</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              <span>删除选中 ({selectedIds.length})</span>
+            </button>
+          )}
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span>添加学生</span>
+          </button>
+        </div>
       </div>
 
       {/* 筛选器 */}
@@ -96,6 +133,18 @@ const StudentsPage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th scope="col" className="px-4 py-3 text-left">
+                  <button
+                    onClick={toggleSelectAll}
+                    className="p-1 hover:bg-gray-200 rounded"
+                  >
+                    {selectedIds.length === filteredStudents.length && filteredStudents.length > 0 ? (
+                      <CheckSquare className="w-5 h-5 text-indigo-600" />
+                    ) : (
+                      <Square className="w-5 h-5 text-gray-400" />
+                    )}
+                  </button>
+                </th>
                 <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   姓名
                 </th>
@@ -117,7 +166,22 @@ const StudentsPage: React.FC = () => {
               {filteredStudents.map((student) => {
                 const group = groups.find(g => g.id === student.group_id);
                 return (
-                  <tr key={student.id} className="hover:bg-gray-50">
+                  <tr 
+                    key={student.id} 
+                    className={`hover:bg-gray-50 ${selectedIds.includes(student.id) ? 'bg-indigo-50' : ''}`}
+                  >
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => toggleSelect(student.id)}
+                        className="p-1 hover:bg-gray-200 rounded"
+                      >
+                        {selectedIds.includes(student.id) ? (
+                          <CheckSquare className="w-5 h-5 text-indigo-600" />
+                        ) : (
+                          <Square className="w-5 h-5 text-gray-400" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                       {student.name}
                     </td>
