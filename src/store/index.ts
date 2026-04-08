@@ -36,6 +36,7 @@ const STORAGE_KEYS = {
 const saveToStorage = (key: string, data: any) => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    console.log(`已保存数据到 ${key}:`, data);
   } catch (e) {
     console.error('保存到localStorage失败:', e);
   }
@@ -44,7 +45,15 @@ const saveToStorage = (key: string, data: any) => {
 const loadFromStorage = <T>(key: string, defaultValue: T): T => {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : defaultValue;
+    console.log(`从 ${key} 加载数据:`, data);
+    if (data) {
+      const parsed = JSON.parse(data) as T;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+      console.log('localStorage数据为空或无效，使用默认值');
+    }
+    return defaultValue;
   } catch (e) {
     console.error('从localStorage加载失败:', e);
     return defaultValue;
