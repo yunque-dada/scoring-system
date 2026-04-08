@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 读取构建后的index.html文件
-const indexHtmlPath = path.join(import.meta.dirname, '../dist/index.html');
+const indexHtmlPath = path.join(import.meta.dirname, '../docs/index.html');
 const indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
 
 // 提取脚本和样式的引用路径
@@ -14,7 +14,7 @@ if (scriptMatch && cssMatch) {
   const cssHref = cssMatch[1];
   
   // 读取404.html文件
-  const fourOhFourPath = path.join(import.meta.dirname, '../dist/404.html');
+  const fourOhFourPath = path.join(import.meta.dirname, '../docs/404.html');
   let fourOhFourContent = fs.readFileSync(fourOhFourPath, 'utf8');
   
   // 更新脚本和样式的引用路径

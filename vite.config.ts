@@ -6,6 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   base: '/scoring-system/',
   build: {
+    outDir: 'docs',
     sourcemap: 'hidden',
   },
   plugins: [

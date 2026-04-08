@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "check": "tsc -b --noEmit",
-    "deploy": "gh-pages -d dist"
+    "deploy": "echo 'Using docs folder on main branch for deployment'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",
