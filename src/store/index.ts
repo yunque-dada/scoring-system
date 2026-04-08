@@ -77,6 +77,8 @@ interface Store {
   addScore: (score: Omit<Score, 'id' | 'created_at' | 'updated_at'>) => void;
   updateScore: (score: Score) => void;
   calculateRankings: () => void;
+  exportData: () => void;
+  importData: (data: { groups: Group[]; students: Student[]; scores: Score[] }) => void;
 }
 
 export const useStore = create<Store>((set, get) => {
@@ -308,6 +310,44 @@ export const useStore = create<Store>((set, get) => {
       });
       
       set({ rankings });
+    },
+
+    // 导出数据
+    exportData: () => {
+      const { groups, students, scores } = get();
+      const data = {
+        groups,
+        students,
+        scores,
+        export_time: new Date().toISOString(),
+        version: '1.0'
+      };
+      
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `scoring-system-data-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      console.log('数据导出成功');
+    },
+
+    // 导入数据
+    importData: (data) => {
+      set((state) => {
+        saveToStorage(STORAGE_KEYS.GROUPS, data.groups);
+        saveToStorage(STORAGE_KEYS.STUDENTS, data.students);
+        saveToStorage(STORAGE_KEYS.SCORES, data.scores);
+        return {
+          groups: data.groups,
+          students: data.students,
+          scores: data.scores
+        };
+      });
+      get().calculateRankings();
+      console.log('数据导入成功');
     }
   };
 });

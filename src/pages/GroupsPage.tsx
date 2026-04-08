@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { Group } from '../types';
-import { Plus, Edit, Trash2, X, CheckSquare, Square } from 'lucide-react';
+import { Plus, Edit, Trash2, X, CheckSquare, Square, Download, Upload } from 'lucide-react';
 
 const GroupsPage: React.FC = () => {
-  const { groups, createGroup, updateGroup, deleteGroup, deleteGroups } = useStore();
+  const { groups, createGroup, updateGroup, deleteGroup, deleteGroups, exportData, importData } = useStore();
   const [showModal, setShowModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   const handleOpenModal = (group?: Group) => {
     if (group) {
@@ -71,12 +72,73 @@ const GroupsPage: React.FC = () => {
     }
   };
 
+  const handleExportData = () => {
+    exportData();
+  };
+
+  const handleImportData = () => {
+    if (!importFile) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        if (data.groups && data.students && data.scores) {
+          if (confirm('确定要导入数据吗？这会覆盖当前所有数据。')) {
+            importData(data);
+            setImportFile(null);
+            alert('数据导入成功！');
+          }
+        } else {
+          alert('无效的数据文件格式！');
+        }
+      } catch (error) {
+        alert('文件解析失败，请确保是有效的JSON文件。');
+      }
+    };
+    reader.readAsText(importFile);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImportFile(file);
+      handleImportData();
+      // 重置input值，允许重复选择同一个文件
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 页面标题和操作按钮 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-900">赛事组别管理</h2>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {/* 导出/导入按钮 */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleExportData}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              <span>导出数据</span>
+            </button>
+            <div className="relative">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                <span>导入数据</span>
+              </button>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleFileChange}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </div>
+          </div>
           {selectedIds.length > 0 && (
             <button
               onClick={handleDeleteSelected}
