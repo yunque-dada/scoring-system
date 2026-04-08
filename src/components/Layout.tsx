@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, Trophy, BarChart2, Layers, Menu, X } from 'lucide-react';
+import { Users, Trophy, BarChart2, Layers } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   
   const navItems = [
     { path: '/groups', icon: Layers, label: '赛事组别' },
@@ -13,29 +13,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { path: '/ranking', icon: BarChart2, label: '组别排行' },
   ];
 
-  return (
-    <div className="flex h-screen">
-      {/* 移动端顶部栏 */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">记分系统</span>
-          </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+  const handleNavClick = useCallback((e: React.MouseEvent, path: string) => {
+    if (isNavigating || location.pathname === path) {
+      e.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+    setTimeout(() => {
+      setIsNavigating(false);
+    }, 300);
+  }, [isNavigating, location.pathname]);
 
+  return (
+    <div className="flex h-screen bg-gray-50">
       {/* 桌面端侧边栏 */}
       <div className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 sm:w-72 bg-white shadow-md border-r border-gray-200">
-        {/* Logo区域 */}
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
@@ -48,7 +40,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </div>
 
-        {/* 导航菜单 */}
         <nav className="p-3 sm:p-4 flex-1">
           <ul className="space-y-1 sm:space-y-2">
             {navItems.map((item) => {
@@ -59,7 +50,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`group relative flex items-center px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-300 overflow-hidden ${isActive ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={(e) => handleNavClick(e, item.path)}
+                    className={`group relative flex items-center px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-200 overflow-hidden ${isActive ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'hover:bg-gray-100'}`}
                   >
                     <Icon className={`w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 transition-colors ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-indigo-500'}`} />
                     <span className={`font-medium transition-colors ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>
@@ -74,60 +66,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             })}
           </ul>
         </nav>
-
-        {/* 底部装饰 */}
-        <div className="absolute bottom-4 sm:bottom-8 left-3 sm:left-6 right-3 sm:right-6">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-indigo-100">
-            <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
-              <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <Trophy className="w-3 sm:w-4 h-3 sm:h-4 text-white" />
-              </div>
-              <span className="font-semibold text-indigo-700">准备好了吗？</span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600">开始管理你的比赛记分吧！</p>
-          </div>
-        </div>
       </div>
-
-      {/* 移动端侧边栏 */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-lg">
-            <div className="p-6">
-              <div className="flex items-center space-x-4 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <Trophy className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">记分系统</h1>
-                  <p className="text-xs text-gray-500">Scoring System</p>
-                </div>
-              </div>
-              <nav className="space-y-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`group flex items-center px-5 py-3 rounded-xl transition-all duration-300 ${isActive ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'hover:bg-gray-100'}`}
-                    >
-                      <Icon className={`w-5 h-5 mr-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-indigo-500'}`} />
-                      <span className={`font-medium ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 主内容区域 */}
       <div className="lg:ml-64 sm:lg:ml-72 flex-1 flex flex-col overflow-hidden">
@@ -140,40 +79,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {navItems.find(item => item.path === location.pathname)?.label || '首页'}
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  {location.pathname === '/' && '查看比赛的整体统计和概览'}
                   {location.pathname === '/groups' && '管理和创建不同的比赛组别'}
                   {location.pathname === '/students' && '管理参赛学生的信息'}
                   {location.pathname === '/scoring' && '为学生进行实时记分'}
                   {location.pathname === '/ranking' && '查看各组别的排名情况'}
                 </p>
               </div>
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <span className="font-bold text-white text-xs sm:text-sm">管</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         {/* 移动端标题 */}
-        <div className="lg:hidden px-4 py-4 pt-16">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+        <div className="lg:hidden px-4 py-3 pt-4 bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+          <h2 className="text-lg font-semibold text-gray-900">
             {navItems.find(item => item.path === location.pathname)?.label || '首页'}
           </h2>
         </div>
 
         {/* 内容区域 */}
-        <div className="flex-1 overflow-auto pb-16">
+        <div className="flex-1 overflow-auto pb-20">
           <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="fade-in">
-              {children}
-            </div>
+            {children}
           </div>
         </div>
 
         {/* 移动端底部导航栏 */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-md border-t border-gray-200">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-lg border-t border-gray-200">
           <div className="flex justify-around items-center h-16">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -183,10 +114,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex flex-col items-center justify-center px-4 py-2 transition-all duration-300 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
+                  onClick={(e) => handleNavClick(e, item.path)}
+                  className={`flex flex-col items-center justify-center px-3 py-2 transition-all duration-200 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
                 >
-                  <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`} />
-                  <span className={`text-xs font-medium ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}>
+                  <Icon className={`w-6 h-6 mb-1 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                  <span className={`text-xs font-medium ${isActive ? 'text-indigo-600 font-semibold' : 'text-gray-500'}`}>
                     {item.label}
                   </span>
                 </Link>
