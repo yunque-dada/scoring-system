@@ -87,8 +87,53 @@ export const useStore = create<Store>((set, get) => {
     rankings: [],
   };
 
-  return {
+  // 初始化时清理孤立数据
+  const cleanupInitialData = () => {
+    const studentIds = new Set(initialState.students.map(s => s.id));
+    const groupIds = new Set(initialState.groups.map(g => g.id));
+    
+    // 清理孤立的分数（学生已删除或组别已删除的分数）
+    const cleanedScores = initialState.scores.filter(score => 
+      studentIds.has(score.student_id) && groupIds.has(score.group_id)
+    );
+    
+    if (cleanedScores.length !== initialState.scores.length) {
+      saveToStorage(STORAGE_KEYS.SCORES, cleanedScores);
+      console.log(`初始化时清理了 ${initialState.scores.length - cleanedScores.length} 个孤立的分数`);
+      return cleanedScores;
+    }
+    return initialState.scores;
+  };
+
+  // 使用清理后的数据
+  const finalInitialState = {
     ...initialState,
+    scores: cleanupInitialData()
+  };
+
+  return {
+    ...finalInitialState,
+
+    // 清理孤立数据（已删除学生的分数）
+    cleanupOrphanedData: () => {
+      set((state) => {
+        const studentIds = new Set(state.students.map(s => s.id));
+        const groupIds = new Set(state.groups.map(g => g.id));
+        
+        // 清理孤立的分数（学生已删除或组别已删除的分数）
+        const newScores = state.scores.filter(score => 
+          studentIds.has(score.student_id) && groupIds.has(score.group_id)
+        );
+        
+        if (newScores.length !== state.scores.length) {
+          saveToStorage(STORAGE_KEYS.SCORES, newScores);
+          console.log(`清理了 ${state.scores.length - newScores.length} 个孤立的分数`);
+        }
+        
+        return { scores: newScores };
+      });
+      get().calculateRankings();
+    },
 
     fetchGroups: () => {
       const groups = loadFromStorage<Group[]>(STORAGE_KEYS.GROUPS, initialGroups);
