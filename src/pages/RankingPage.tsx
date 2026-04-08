@@ -39,11 +39,11 @@ const RankingPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* 页面标题和操作按钮 */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-900">组别排行</h2>
         <button
           onClick={handleExport}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center w-full sm:w-auto justify-center"
         >
           <Download className="w-4 h-4 mr-2" />
           <span>导出排行榜</span>
@@ -52,15 +52,15 @@ const RankingPage: React.FC = () => {
 
       {/* 筛选器 */}
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex items-center space-x-4">
-          <label htmlFor="group-filter" className="text-sm font-medium text-gray-700">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <label htmlFor="group-filter" className="text-sm font-medium text-gray-700 w-full sm:w-auto">
             按组别筛选：
           </label>
           <select
             id="group-filter"
             value={selectedGroup}
             onChange={(e) => setSelectedGroup(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-auto"
           >
             <option value="">全部组别</option>
             {groups.map(group => (
@@ -80,20 +80,20 @@ const RankingPage: React.FC = () => {
 
           return (
             <div key={group_id} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="bg-indigo-600 text-white px-6 py-4">
+              <div className="bg-indigo-600 text-white px-4 sm:px-6 py-3 sm:py-4">
                 <h3 className="text-lg font-semibold">{group.name} - 排行榜</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         排名
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         学生姓名
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         分数
                       </th>
                     </tr>
@@ -101,13 +101,13 @@ const RankingPage: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {groupRankings.map((ranking, index) => (
                       <tr key={ranking.student_id} className={index < 3 ? 'bg-yellow-50' : ''}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                           {ranking.rank}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900">
                           {ranking.student_name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                           {ranking.score}
                         </td>
                       </tr>
@@ -121,7 +121,7 @@ const RankingPage: React.FC = () => {
 
         {/* 无数据提示 */}
         {Object.keys(rankingsByGroup).length === 0 && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="bg-white rounded-lg shadow p-8 sm:p-12 text-center">
             <p className="text-gray-500">暂无排名数据</p>
           </div>
         )}

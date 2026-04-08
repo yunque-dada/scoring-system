@@ -1,7 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
 import GroupsPage from './pages/GroupsPage';
 import StudentsPage from './pages/StudentsPage';
 import ScoringPage from './pages/ScoringPage';
@@ -12,7 +11,7 @@ const App: React.FC = () => {
     <Router basename="/scoring-system">
       <Layout>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to="/groups" replace />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/students" element={<StudentsPage />} />
           <Route path="/scoring" element={<ScoringPage />} />

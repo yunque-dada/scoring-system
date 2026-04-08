@@ -70,7 +70,7 @@ const ScoringPage: React.FC = () => {
       <h2 className="text-2xl font-bold text-gray-900">记分系统</h2>
 
       {/* 记分表单 */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">添加/修改分数</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -133,7 +133,7 @@ const ScoringPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !selectedGroup || !selectedStudent}
-              className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 sm:px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto sm:justify-center"
             >
               {loading ? '保存中...' : '保存分数'}
             </button>
@@ -143,23 +143,23 @@ const ScoringPage: React.FC = () => {
 
       {/* 分数历史记录 */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">分数历史记录</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   学生姓名
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   组别
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   分数
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   更新时间
                 </th>
               </tr>
@@ -169,17 +169,17 @@ const ScoringPage: React.FC = () => {
                 const student = students.find(s => s.id === scoreItem.student_id);
                 const group = groups.find(g => g.id === scoreItem.group_id);
                 return (
-                  <tr key={scoreItem.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={scoreItem.id} className="hover:bg-gray-50">
+                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                       {student?.name || '未知学生'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {group?.name || '未知组别'}
+                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                      <div className="truncate max-w-xs sm:max-w-md">{group?.name || '未知组别'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                       {scoreItem.score}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                       {new Date(scoreItem.updated_at).toLocaleString()}
                     </td>
                   </tr>
